@@ -1,0 +1,7 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:optionalBlock name="releases.show"
+        help="/plugin/svn-partial-release-mgr/help-projectConfig.html"
+        title="${%Use Svn-Partial Release Manager}" checked="${instance != null}">
+  </f:optionalBlock>
+</j:jelly>

@@ -1,0 +1,255 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form">
+    <j:set var="revisionsInfo" value="${it.allIssueRevisionsInfo}"/>
+
+    <l:layout title="Releases : ${it.owner.displayName}">
+        <st:include page="sidepanel.jelly" it="${it.owner}"/>
+        <l:main-panel>
+            <script>
+                //<![CDATA[
+        function CA(form, checkboxName) {
+            var cb = form.elements[checkboxName];
+            for (var i = 0; i < form.elements.length; i++) {
+                if (!form.elements[i].type == "checkbox")
+                    continue;
+                if (! ( form.elements[i].name == 'includeInPatch' || form.elements[i].name == 'issue'))
+                    continue;
+                form.elements[i].checked = cb.checked;
+            }
+        }
+
+        function checkIssueRevisions(chBox, revisionIds) {
+            var revisionIdArray = revisionIds.split(',');
+            var isChecked = chBox.checked;
+            var f = chBox.form;
+            for (i = 0; i < f.elements.length; i++) {
+                if (f.elements[i].type == 'checkbox'
+                        && f.elements[i].name == 'includeInPatch') {
+                   if (isIncluded(f.elements[i].value,revisionIdArray)){
+                       f.elements[i].checked = isChecked;
+                   }
+                }
+            }
+        }
+
+        function isIncluded(chckValue,revisionIdArray){
+            for(var i=0; i < revisionIdArray.length; i++){
+                if( revisionIdArray[i] == chckValue ){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+         function validateForPatch(b)
+         {
+            count = 0
+            f = b.form
+            for (i = 0 ; i < f.elements.length ; i++)
+            if (f.elements[i].type == 'checkbox' &&
+                f.elements[i].name == 'includeInPatch' &&
+                f.elements[i].checked)
+            {
+               count += 1
+            }
+
+            if (count < 1)
+            {
+            	alert("At least 1 revision is required to be checked.");
+            } else {
+            	f.submit();
+            }
+         }
+
+         function showHideImg(id , imgopen , imgclose ){
+            if (document.getElementById(id).style.display == 'table-row'){
+                document.getElementById(id).style.display = 'none';
+                document.getElementById(id + "_image").src = '${resURL}/plugin/svn-partial-release-mgr/images/'+imgopen;
+            }
+            else {
+               document.getElementById(id).style.display = 'table-row';
+               document.getElementById(id + "_image").src = '${resURL}/plugin/svn-partial-release-mgr/images/'+imgclose;
+            }
+         }
+         //]]>
+            </script>
+
+            <f:form name="compareForm" method="POST" action="build">
+
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td colspan="100%" style="padding-left:15px">
+                            <h1>Issues</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="100%">
+                            <table class="pane">
+                                <thead>
+                                    <tr>
+                                        <td class="pane-header" width="20">
+                                            <input name="all_issues" type="checkbox"
+                                                   checked="checked" style="border:0"
+                                                    onClick="CA(this.form, 'all_issues');"/>
+                                        </td>
+                                        <td class="pane-header">Issue</td>
+                                        <td class="pane-header">Deployed</td>
+                                        <td class="pane-header">Author</td>
+                                        <td class="pane-header">Message</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <j:forEach var="i" items="${revisionsInfo.issues}">
+                                        <tr>
+                                            <td class="pane" style="${i.style}">
+                                                <j:choose>
+                                                    <j:when test="${i.alreadyDeployed}"><input type="checkbox" checked="checked" name="dis_issue" disabled="true"/></j:when>
+                                                    <j:otherwise><input type="checkbox" checked="checked" name="issue"
+                                                                        onClick="checkIssueRevisions(this,'${i.revisionsArray}')"/></j:otherwise>
+                                                </j:choose>
+                                            </td>
+                                            <td class="pane" style="${i.style}">${i.number}</td>
+                                            <td class="pane" style="${i.style}">${i.deployedDate}</td>
+                                            <td class="pane" style="${i.style}">${i.userName}</td>
+                                            <td class="pane" style="${i.style}">${i.message}</td>
+                                        </tr>
+                                    </j:forEach>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="100%" style="padding-top:5px;padding-left:12px">
+                            <input type="checkbox" checked="checked" name="generatePartialPatch" value="1"/> Generate Partial Patch
+                        </td>
+                    </tr>
+                    <j:if test="${revisionsInfo.hasPreviousDeployments()}">
+                    <tr>
+                        <td colspan="100%" style="padding-top:5px;padding-left:12px">
+                            <input type="checkbox" name="includePreviousPatchSources" value="1"/> Include Previous deployments source
+                        </td>
+                    </tr>
+                    </j:if>
+                    <tr>
+                        <td colspan="100%" style="padding-left:12px">
+                            <input type="checkbox" name="generateSourcePartialPatch" value="1"/> Generate Sources Patch
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="100%" style="padding-left:12px">
+                            <input type="checkbox" name="generatePatchForEveryIssue" value="1"/> Separate Patch for every issue
+                        </td>
+                    </tr>
+                    <j:if test="${it.hasTagSource()}">
+                    <tr>
+                        <td colspan="100%" style="padding-left:12px">
+                            <input type="checkbox" name="isFastBuild" value="1"/> Fast Build ( Does not clean the build directory, just overrides the files)
+                        </td>
+                    </tr>
+                    </j:if>
+                    <tr>
+                        <td colspan="100%" style="padding-left:12px">
+                            <input type="checkbox" name="isTestBuild" value="1"/> Test Build ( Executes the maven build but is not listed as valid deployment)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="100%" style="padding-top:10px;padding-bottom:35px;padding-left:15px">
+                            <input type="button"
+                                   onClick="validateForPatch(this)" value="Release Version" class="compare-button"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="100%" style="padding-left:15px">
+                            <h1>Svn Revisions</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="100%">
+                            <table class="pane">
+                                <thead>
+                                    <tr>
+                                        <td class="pane-header" width="20"></td>
+                                        <td class="pane-header">Revision</td>
+                                        <td class="pane-header">Deployed</td>
+                                        <td class="pane-header">Author</td>
+                                        <td class="pane-header">Date</td>
+                                        <td class="pane-header">Message</td>
+                                        <td class="pane-header" width="20">Details</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <j:forEach var="r" items="${revisionsInfo.revisions}">
+                                        <tr>
+                                            <td class="pane" style="${r.style}">
+                                                <j:choose>
+                                                    <j:when test="${r.alreadyDeployed}"><input type="checkbox" checked="checked" name="dis_rev" disabled="true"/></j:when>
+                                                    <j:otherwise><input type="checkbox" checked="checked" name="includeInPatch" value="${r.logEntry.revision}"/></j:otherwise>
+                                                </j:choose>
+                                            </td>
+                                            <td class="pane" style="${r.style}">
+                                                ${r.logEntry.revision}
+                                            </td>
+                                            <td class="pane" style="${r.style}">
+                                                ${r.deployedDate}
+                                            </td>
+                                            <td class="pane" style="${r.style}">
+                                                ${r.logEntry.author}
+                                            </td>
+                                            <td class="pane" style="${r.style}">
+                                                ${r.logEntry.date}
+                                            </td>
+                                            <td class="pane" style="${r.style}">
+                                                ${r.logEntry.message}
+                                            </td>
+                                            <td class="pane" style="${r.style}">
+                                                <a style="text-decoration: none;"
+                                                   href="javascript:showHideImg('tr_${r.logEntry.revision}','collapse.gif','re-open.gif')">
+                                                    <img width="16" height="16"
+                                                         id="tr_${r.logEntry.revision}_image"
+                                                         src="${resURL}/plugin/svn-partial-release-mgr/images/collapse.gif"/>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr id="tr_${r.logEntry.revision}" style="display: none;">
+                                            <td colspan="100"
+                                                style="padding-left:15px;padding-right:15px;padding-top:5px;padding-bottom:5px;border-bottom:1px solid lightgrey;background: #eee">
+                                                <table width="100%" cellpadding="0" cellspacing="0">
+                                                    <j:forEach var="pk"
+                                                               items="${r.logEntry.getChangedPaths().keySet()}">
+                                                        <j:set var="ep"
+                                                               value="${r.logEntry.getChangedPaths().get(pk)}"/>
+                                                        <tr>
+                                                            <td width="20">
+                                                                <strong>${ep.type}</strong>
+                                                            </td>
+                                                            <td style="color: #2E629D">
+                                                                ${ep.path}
+                                                            </td>
+                                                        </tr>
+                                                        <j:choose>
+                                                            <j:when test="${ep.copyPath!=null}">
+                                                                <tr>
+                                                                    <td width="20"></td>
+                                                                    <td>
+                                                                        (Copied from revision ${ep.copyRevision} [
+                                                                        ${ep.copyPath} ])
+                                                                    </td>
+                                                                </tr>
+                                                            </j:when>
+                                                        </j:choose>
+                                                    </j:forEach>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </j:forEach>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+            </f:form>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
