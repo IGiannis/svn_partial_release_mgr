@@ -1,0 +1,66 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.hudsonci.plugins</groupId>
+    <artifactId>svn-partial-release-mgr</artifactId>
+    <packaging>hpi</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>Subversion Partial Release Manager plugin</name>
+    <description>
+        Plugin lists issues from the chosen tag and asks from the user to chose the issues he/she wants to move on production.
+		Has been based on the https://wiki.jenkins-ci.org/display/JENKINS/Subversion+Release+Manager
+    </description>
+    <url></url>
+
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>2.11</version>
+        <relativePath/>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>giliadis</id>
+            <name>Giannis Iliadis</name>
+            <email>jiliadis@gmail.com</email>
+            <roles>
+                <role>
+                    Original Developer
+                </role>
+            </roles>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>subversion</artifactId>
+            <version>2.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-model -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <version>3.3.9</version>
+        </dependency>
+
+    </dependencies>
+
+</project>  
+  
+
