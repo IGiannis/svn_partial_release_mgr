@@ -11,7 +11,7 @@ import hudson.plugins.svn_partial_release_mgr.api.model.TagDeploymentInfo;
  * @author G.ILIADIS
  *         Have a nice programming day!!!!
  */
-public interface Function1UpdateTagDeploymentsJsonFiles {
+public interface Function1StoreTagDeploymentInfoFile {
 
 
   /**
@@ -21,7 +21,7 @@ public interface Function1UpdateTagDeploymentsJsonFiles {
    * @param workspace the workspace path of the job
    * @param listener  a place to send output
    */
-  TagDeploymentInfo moveTheJsonDeploymentInfoToTagDeployments(Run<?, ?> build,
+  TagDeploymentInfo moveTheDeploymentInfoFileToTagDeployments(Run<?, ?> build,
                                                               FilePath workspace,
                                                               TaskListener listener)
       throws IOException;

@@ -1,12 +1,13 @@
 package hudson.plugins.svn_partial_release_mgr.api;
 
+import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function1StoreTagDeploymentInfoFile;
+import hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild.Function1StoreTagDeploymentInfoFileImpl;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import hudson.plugins.svn_partial_release_mgr.api.constants.PluginUtil;
-import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function1UpdateTagDeploymentsJsonFiles;
 import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function2PartialPatchCreator;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function0GetReleaseDeployInput;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function1GetTagSource;
@@ -18,7 +19,6 @@ import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function1Ta
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function2RevisionsAfterTagCollector;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function3PrevDeploymentsCollector;
 import hudson.plugins.svn_partial_release_mgr.impl.ReleaseDeploymentService;
-import hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild.Function1UpdateTagDeploymentsJsonFilesImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild.Function2PartialPatchCreatorEmpty;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function0GetReleaseDeployInputImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function1GetTagSourceImpl;
@@ -51,8 +51,8 @@ public class PluginFactory {
           Function4BackupReleaseFilesAsSrcPatchesImpl.class);
       put(Function5BackupDeploymentInfoFile.class, Function5BackupDeploymentInfoFileImpl.class);
 
-      put(Function1UpdateTagDeploymentsJsonFiles.class,
-          Function1UpdateTagDeploymentsJsonFilesImpl.class);
+      put(Function1StoreTagDeploymentInfoFile.class,
+          Function1StoreTagDeploymentInfoFileImpl.class);
       put(Function2PartialPatchCreator.class, Function2PartialPatchCreatorEmpty.class);
     }
   };

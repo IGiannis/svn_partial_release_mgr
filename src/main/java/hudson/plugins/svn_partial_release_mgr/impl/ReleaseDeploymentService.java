@@ -1,5 +1,6 @@
 package hudson.plugins.svn_partial_release_mgr.impl;
 
+import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function1StoreTagDeploymentInfoFile;
 import org.apache.commons.io.FileUtils;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
@@ -20,7 +21,6 @@ import hudson.plugins.svn_partial_release_mgr.api.PluginFactory;
 import hudson.plugins.svn_partial_release_mgr.api.PluginService;
 import hudson.plugins.svn_partial_release_mgr.api.constants.Constants;
 import hudson.plugins.svn_partial_release_mgr.api.constants.PluginUtil;
-import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function1UpdateTagDeploymentsJsonFiles;
 import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function2PartialPatchCreator;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function0GetReleaseDeployInput;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function1GetTagSource;
@@ -63,8 +63,8 @@ public class ReleaseDeploymentService implements PluginService {
                                       TaskListener listener) throws IOException {
     // we have a success build so we need to move the deployment folder
     TagDeploymentInfo tagDeploymentInfo =
-        PluginFactory.getBean(Function1UpdateTagDeploymentsJsonFiles.class)
-            .moveTheJsonDeploymentInfoToTagDeployments(build, workspace, listener);
+        PluginFactory.getBean(Function1StoreTagDeploymentInfoFile.class)
+            .moveTheDeploymentInfoFileToTagDeployments(build, workspace, listener);
     // extract a partial patch
     PluginFactory.getBean(Function2PartialPatchCreator.class)
         .createThePartialPatch(build, tagDeploymentInfo, workspace, listener);

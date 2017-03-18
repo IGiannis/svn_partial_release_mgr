@@ -1,5 +1,6 @@
 package hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild;
 
+import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function1StoreTagDeploymentInfoFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -11,15 +12,14 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.svn_partial_release_mgr.api.constants.Constants;
 import hudson.plugins.svn_partial_release_mgr.api.constants.PluginUtil;
-import hudson.plugins.svn_partial_release_mgr.api.functions.afterbuild.Function1UpdateTagDeploymentsJsonFiles;
 import hudson.plugins.svn_partial_release_mgr.api.model.TagDeploymentInfo;
 
 /**
  * @author G.ILIADIS
  *         Have a nice programming day!!!!
  */
-public class Function1UpdateTagDeploymentsJsonFilesImpl
-    implements Function1UpdateTagDeploymentsJsonFiles {
+public class Function1StoreTagDeploymentInfoFileImpl
+    implements Function1StoreTagDeploymentInfoFile {
 
 
   /**
@@ -30,7 +30,7 @@ public class Function1UpdateTagDeploymentsJsonFilesImpl
    * @param listener  a place to send output
    */
   @Override
-  public TagDeploymentInfo moveTheJsonDeploymentInfoToTagDeployments(Run<?, ?> build,
+  public TagDeploymentInfo moveTheDeploymentInfoFileToTagDeployments(Run<?, ?> build,
                                                                      FilePath workspace,
                                                                      TaskListener listener)
       throws IOException {
