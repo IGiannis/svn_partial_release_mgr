@@ -36,13 +36,13 @@ public class Function1UpdateTagDeploymentsJsonFilesImpl
       throws IOException {
     String jsonPath = build.getRootDir() +
         "/" + Constants.DIR_NAME_DEPLOYMENTS +
-        "/" + Constants.DEPLOYMENT_INFO_JSON_FILE_NAME;
+        "/" + Constants.DEPLOYMENT_INFO_XML_FILE_NAME;
     File jsonDeploymentInfoFile = new File(FilenameUtils.separatorsToUnix(jsonPath));
     if (!jsonDeploymentInfoFile.exists()) {
       return null;
     }
     TagDeploymentInfo tagDeploymentInfo = TagDeploymentInfo.readFromFile(jsonDeploymentInfoFile);
-    if (tagDeploymentInfo.getUserInput().isTestBuild()) {
+    if (PluginUtil.isTestBuild(tagDeploymentInfo.getUserInput())) {
       return tagDeploymentInfo;
     }
 

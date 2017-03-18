@@ -2,28 +2,51 @@ package hudson.plugins.svn_partial_release_mgr.api.constants;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
+
 import org.tmatesoft.svn.core.SVNURL;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import hudson.FilePath;
 import hudson.model.TaskListener;
 import hudson.plugins.svn_partial_release_mgr.api.model.TagDeploymentInfo;
+import hudson.plugins.svn_partial_release_mgr.api.model.UserInput;
 
 /**
  * @author G.ILIADIS
@@ -149,6 +172,298 @@ public class PluginUtil {
       throw new IOException("Could not parse the date [" + dateString + "] "
           + "with format [" + dateFormat + "]");
     }
+  }
+
+  /**
+   * Creates a new empty document object
+   *
+   * @return the newly created document
+   */
+  public static Document buildNewW3CDocument() {
+    DocumentBuilderFactory factory =
+        DocumentBuilderFactory.newInstance();
+    Document document = null;
+    try {
+      DocumentBuilder builder =
+          factory.newDocumentBuilder();
+      document = builder.newDocument();
+    } catch (ParserConfigurationException pce) {
+      // Parser with specified options can't be built
+      pce.printStackTrace();
+    }
+    return document;
+  }
+
+  /**
+   * Reads the content of the xml file into a new document object
+   *
+   * @param file the file to get the xml from
+   * @return the newly created document
+   */
+  public static Document buildW3CDocumentFromFile(File file,
+                                                  String encoding) throws Exception {
+    DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+    domFactory.setValidating(false);
+    DocumentBuilder domBuilder = domFactory.newDocumentBuilder();
+    LineNumberReader lnr = null;
+    Document doc = null;
+    try {
+      lnr = new LineNumberReader(new InputStreamReader(new FileInputStream(file), encoding));
+      InputSource inSource = new InputSource(lnr);
+      doc = domBuilder.parse(inSource);
+    } finally {
+      if (lnr != null) {
+        try {
+          //System.out.println("Closing " + filePath);
+          lnr.close();
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      }
+    }
+    return doc;
+  }
+
+  /**
+   * Returns the value of a child tag with the given name ( if exists) inside this element
+   *
+   * @param element  : the given XML Element object
+   * @param tagChild : the name of the child tag
+   * @return the text value in string ( in CDATA element or simple one )
+   */
+  public static String getValueFromChildElement(Node element,
+                                                String tagChild) {
+    Node valueNode = findNextNode(element, tagChild);
+    return valueNode != null ? getValueFromTextNode(valueNode) : null;
+  }
+
+  /**
+   * Reads all child tags and returns them as a java.util.Properties object
+   *
+   * @param element : the XML Element object
+   * @return a Properties object with all tag name/value pairs
+   */
+  public static Map<String, String> getChildNodeValues(Node element) {
+    if (element == null) {
+      return null;
+    }
+    if (!element.hasChildNodes()) {
+      return null;
+    }
+    Map<String, String> result = new LinkedHashMap<>();
+    NodeList nl = element.getChildNodes();
+    if (nl == null || nl.getLength() <= 0) {
+      return null;
+    }
+    for (int i = 0; i < nl.getLength(); i++) {
+      Node nd = nl.item(i);
+      String xmlValue = getValueFromTextNode(nd);
+      if (!StringUtils.isBlank(xmlValue)) {
+        result.put(nd.getNodeName(), xmlValue);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Creates a list of the child elements with the input tag inside the given element
+   *
+   * @param node the element to get the child elements of
+   * @param name the tag name to get elements for
+   * @return a list of the child elements with the input tag inside the given element
+   */
+  public static List<Node> getNodesInNode(Node node,
+                                          String name) {
+    if (node == null) {
+      return null;
+    }
+    if (!node.hasChildNodes()) {
+      return null;
+    }
+    NodeList childrenNodes = node.getChildNodes();
+    if (childrenNodes == null || childrenNodes.getLength() <= 0) {
+      return null;
+    }
+    List<Node> nodes = null;
+    for (int i = 0; i < childrenNodes.getLength(); i++) {
+      Node nd = childrenNodes.item(i);
+      if (nd != null && nd.getNodeName() != null && nd.getNodeName().equals(name)) {
+        if (nodes == null) {
+          nodes = new ArrayList<Node>();
+        }
+        nodes.add(nd);
+      }
+    }
+    return nodes;
+  }
+
+  /**
+   * Returns the first child element with the input tag name inside the given element
+   *
+   * @param node    : the target xml Element
+   * @param tagName : the tag name to search element for
+   * @return the first found Element
+   */
+  public static Node findNextNode(Node node,
+                                  String tagName) {
+    if (node == null) {
+      return null;
+    }
+    if (!node.hasChildNodes()) {
+      return null;
+    }
+    NodeList childrenNodes = node.getChildNodes();
+    if (childrenNodes == null || childrenNodes.getLength() <= 0) {
+      return null;
+    }
+    Node _retNode = null;
+    for (int i = 0; i < childrenNodes.getLength(); i++) {
+      Node nd = childrenNodes.item(i);
+      if (nd.getNodeName().equals(tagName)) {
+        return nd;
+      } else {
+        _retNode = findNextNode(nd, tagName);
+      }
+    }
+    return _retNode;
+  }
+
+  /**
+   * Returns the text value of the given element
+   *
+   * @param element : the given XML Element object
+   * @return the text value in string
+   */
+  public static String getValueFromTextNode(Node element) {
+    if (element == null) {
+      return null;
+    }
+    NodeList childrenNodes = element.getChildNodes();
+    if (childrenNodes == null || childrenNodes.getLength() <= 0) {
+      return null;
+    }
+    StringBuilder text = null;
+    for (int i = 0; i < childrenNodes.getLength(); i++) {
+      Node childNode = childrenNodes.item(i);
+      if (childNode == null) {
+        continue;
+      }
+      if (Node.TEXT_NODE == childNode.getNodeType()) {
+        if (text == null) {
+          text = new StringBuilder();
+        }
+        text.append(childNode.getNodeValue());
+      }
+    }
+    return text != null ? text.toString() : null;
+  }
+
+
+  /**
+   * Creates a new child element with the given tag name inside the input element and appends the input value in it
+   *
+   * @param rootNode    the node to create a child element into
+   * @param elementName the name of the tag of the new child element that will be created
+   * @param value       the value to set to the newly created tag
+   * @return the newly created child element
+   */
+  public static Node addNodeInNode(Node rootNode,
+                                   String elementName,
+                                   String value) {
+    Document document = rootNode.getOwnerDocument();
+    Element newElement = document.createElement(elementName);
+    setNodeValue(newElement, value);
+    rootNode.appendChild(newElement);
+    return newElement;
+  }
+
+  /**
+   * Sets a new text value in this element
+   *
+   * @param element   : the target xml Element
+   * @param textValue : the text value to be entered inside the Element
+   */
+  public static void setNodeValue(Node element,
+                                  String textValue) {
+    if (StringUtils.isBlank(textValue)) {
+      return;
+    }
+    if (element == null) {
+      return;
+    }
+    if (element.hasChildNodes()) {
+      Node vFirstChild = element.getFirstChild();
+      if (vFirstChild.getNodeType() == Node.TEXT_NODE) {
+        vFirstChild.setNodeValue(textValue);
+        return;
+      }
+      if (vFirstChild.getNodeType() == Node.CDATA_SECTION_NODE) {
+        element.removeChild(vFirstChild);
+        Document doc = element.getOwnerDocument();
+        element.appendChild(doc.createTextNode(textValue));
+      }
+      return;
+    }
+    Document doc = element.getOwnerDocument();
+    element.appendChild(doc.createTextNode(textValue));
+  }
+
+  /**
+   * Stores the xml document into the input file
+   *
+   * @param document the input XML Document object
+   * @param file     the file to be stored the input document
+   */
+  public static void toFile(Document document,
+                            File file) throws Exception {
+    FileOutputStream fos = null;
+    try {
+      fos = new FileOutputStream(file);
+      toOutputStream(document, fos);
+    } finally {
+      if (fos != null) {
+        fos.close();
+      }
+    }
+  }
+
+  /**
+   * Stores the xml document into the input file
+   *
+   * @param document the input XML Document object
+   * @param out      the OutputStream to be stored the input document
+   */
+  public static <O extends OutputStream> O toOutputStream(Document document,
+                                                          O out) throws Exception {
+    transform(document, Constants.XML_OUTPUT_PROPERTIES, new StreamResult(out));
+    return out;
+  }
+
+  /**
+   * Main transformation method. It transform the input document using the input properties
+   * and returns the result into the input streamResult
+   *
+   * @param document         the input XML Document object
+   * @param outputProperties the properties to use for output
+   * @param streamResult     the object to be stored the transformation result
+   */
+  public static void transform(Document document,
+                               Properties outputProperties,
+                               StreamResult streamResult) throws Exception {
+    TransformerFactory transFactory = TransformerFactory.newInstance();
+    Transformer transformer = transFactory.newTransformer();
+    if (outputProperties != null) {
+      Enumeration<?> propertyNames = outputProperties.propertyNames();
+      while (propertyNames.hasMoreElements()) {
+        String propName = propertyNames.nextElement().toString();
+        String propValue = outputProperties.getProperty(propName);
+        if (propValue == null) {
+          continue;
+        }
+        transformer.setOutputProperty(propName, propValue);
+      }
+    }
+    transformer.transform(new DOMSource(document), streamResult);
   }
 
   /**
@@ -415,5 +730,48 @@ public class PluginUtil {
       return false;
     }
     return ignoreCase ? s.equalsIgnoreCase(target) : s.equals(target);
+  }
+
+  public static boolean isGeneratePartialPatch(UserInput userInput) {
+    return isBooleanAdditionParameterTrue(userInput,
+        Constants.ENV_PARAM_GENERATE_PARTIAL_PATCH);
+  }
+
+  public static boolean isGenerateSourcePartialPatch(UserInput userInput) {
+    return isBooleanAdditionParameterTrue(userInput,
+        Constants.ENV_PARAM_GENERATE_SRC_PARTIAL_PATCH);
+  }
+
+  public static boolean isGeneratePatchForEveryIssue(UserInput userInput) {
+    return isBooleanAdditionParameterTrue(userInput,
+        Constants.ENV_PARAM_GENERATE_PATCH_FOR_EVERY_ISSUE);
+  }
+
+  public static boolean isFastBuild(UserInput userInput) {
+    return isBooleanAdditionParameterTrue(userInput,
+        Constants.ENV_PARAM_IS_FAST_BUILD);
+  }
+
+  public static boolean isTestBuild(UserInput userInput) {
+    return isBooleanAdditionParameterTrue(userInput,
+        Constants.ENV_PARAM_IS_TEST_BUILD);
+  }
+
+  public static boolean isIncludePreviousPatchSources(UserInput userInput) {
+    return isBooleanAdditionParameterTrue(userInput,
+        Constants.ENV_PARAM_INCLUDE_PREV_PATCH_SOURCES);
+  }
+
+  /**
+   * Checkbox value for checked in UI will be set to 1 so we compare against 1
+   *
+   * @param userInput     the user input values wrapper
+   * @param attributeName the attribute name to check if it has been checked the checkbox for
+   * @return true if the checkbox has been checked
+   */
+  private static boolean isBooleanAdditionParameterTrue(UserInput userInput,
+                                                        String attributeName) {
+    String value = userInput.getAdditionalParameterValue(attributeName);
+    return NumberUtils.toInt(value) == 1;
   }
 }

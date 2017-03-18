@@ -7,6 +7,7 @@ import org.kohsuke.stapler.StaplerResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 
@@ -24,6 +25,10 @@ import hudson.plugins.svn_partial_release_mgr.api.model.AllIssueRevisionsInfo;
 import hudson.scm.SubversionReleaseSCM;
 import jenkins.model.Jenkins;
 
+/**
+ * @author G.ILIADIS
+ *         Have a nice programming day!!!!
+ */
 public class ProjectReleaseAction implements ProminentProjectAction {
 
   private AbstractProject<?, ?> owner;
@@ -78,7 +83,7 @@ public class ProjectReleaseAction implements ProminentProjectAction {
     return (SubversionReleaseSCM) owner.getScm();
   }
 
-  public boolean hasTagSource() throws IOException{
+  public boolean hasTagSource() throws IOException {
     // in this point I could not find how to get an non null workspace
     FilePath workspaceDir = Jenkins.getInstance()
         .getWorkspaceFor((TopLevelItem) owner.getRootProject());
@@ -92,30 +97,28 @@ public class ProjectReleaseAction implements ProminentProjectAction {
     List<ParameterValue> buildParameters = new ArrayList<>();
     PluginUtil.setJobStarted();
     System.setProperty("hudson.model.ParametersAction.keepUndefinedParameters", "true");
+
     buildParameters.add(new StringParameterValue(
         Constants.ENV_PARAM_RELEASE_REVISIONS, toStringRevisionIds));
-    buildParameters.add(new StringParameterValue(
-        Constants.ENV_PARAM_GENERATE_PARTIAL_PATCH,
-        StringUtils.defaultString(req.getParameter("generatePartialPatch"))));
-    buildParameters.add(new StringParameterValue(
-        Constants.ENV_PARAM_GENERATE_SRC_PARTIAL_PATCH,
-        StringUtils.defaultString(req.getParameter("generateSourcePartialPatch"))));
-    buildParameters.add(new StringParameterValue(
-        Constants.ENV_PARAM_GENERATE_PATCH_FOR_EVERY_ISSUE,
-        StringUtils.defaultString(req.getParameter("generatePatchForEveryIssue"))));
-    buildParameters.add(new StringParameterValue(
-        Constants.ENV_PARAM_IS_FAST_BUILD,
-        StringUtils.defaultString(req.getParameter("isFastBuild"))));
-    buildParameters.add(new StringParameterValue(
-        Constants.ENV_PARAM_IS_TEST_BUILD,
-        StringUtils.defaultString(req.getParameter("isTestBuild"))));
-    buildParameters.add(new StringParameterValue(
-        Constants.ENV_PARAM_INCLUDE_PREV_PATCH_SOURCES,
-        StringUtils.defaultString(req.getParameter("includePreviousPatchSources"))));
+    buildParameters = getAdditionalParameters(buildParameters, req);
 
     owner.makeDisabled(false);
     owner.scheduleBuild(0, new Cause.UserCause(),
         new ParametersAction(buildParameters));
     rsp.sendRedirect(req.getContextPath());
+  }
+
+  protected List<ParameterValue> getAdditionalParameters(List<ParameterValue> buildParameters,
+                                                         StaplerRequest req) {
+    for (Map.Entry<String, String> entry : Constants.additionalUserInputParameters.entrySet()) {
+      String parameterName = entry.getValue();
+      String parameterValue = req.getParameter(parameterName);
+      if (StringUtils.isBlank(parameterValue)) {
+        continue;
+      }
+      String environmentVariable = entry.getKey();
+      buildParameters.add(new StringParameterValue(environmentVariable, parameterValue));
+    }
+    return buildParameters;
   }
 }

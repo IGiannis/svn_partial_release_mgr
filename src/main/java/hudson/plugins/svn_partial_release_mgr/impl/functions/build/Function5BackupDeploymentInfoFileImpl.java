@@ -1,22 +1,19 @@
 package hudson.plugins.svn_partial_release_mgr.impl.functions.build;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.w3c.dom.Document;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
-
-import javax.json.Json;
-import javax.json.JsonWriter;
-import javax.json.stream.JsonGenerator;
 
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import hudson.plugins.svn_partial_release_mgr.api.constants.Constants;
 import hudson.plugins.svn_partial_release_mgr.api.constants.PluginUtil;
-import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function5BackupDeploymentInfoJson;
+import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function5BackupDeploymentInfoFile;
 import hudson.plugins.svn_partial_release_mgr.api.model.ReleaseDeployInput;
 import hudson.plugins.svn_partial_release_mgr.api.model.TagDeploymentInfo;
 
@@ -24,7 +21,7 @@ import hudson.plugins.svn_partial_release_mgr.api.model.TagDeploymentInfo;
  * @author G.ILIADIS
  *         Have a nice programming day!!!!
  */
-public class Function5BackupDeploymentInfoJsonImpl implements Function5BackupDeploymentInfoJson {
+public class Function5BackupDeploymentInfoFileImpl implements Function5BackupDeploymentInfoFile {
 
   /**
    * Stores the deployed revisions and other info of the releaseDeployInput into a json file
@@ -44,27 +41,19 @@ public class Function5BackupDeploymentInfoJsonImpl implements Function5BackupDep
         deploymentDate, releaseDeployInput.getUserInput());
 
     File buildDeploymentDir = new File(build.getRootDir(), Constants.DIR_NAME_DEPLOYMENTS);
+    FileUtils.forceMkdir(buildDeploymentDir);
     String path = buildDeploymentDir.getAbsolutePath() + "/" +
-        Constants.DEPLOYMENT_INFO_JSON_FILE_NAME;
+        Constants.DEPLOYMENT_INFO_XML_FILE_NAME;
     path = FilenameUtils.separatorsToUnix(path);
-    PluginUtil.log(listener, "STORING DEPLOYMENT INFO JSON FILE [" + path + "]..........");
-    FileWriter fileWriter = null;
-    JsonWriter writer = null;
+    PluginUtil.log(listener, "STORING DEPLOYMENT INFO XML FILE [" + path + "]..........");
+
     try {
-      fileWriter = new FileWriter(path);
-      writer = Json.createWriterFactory(
-          Collections.singletonMap(JsonGenerator.PRETTY_PRINTING, true)
-      ).createWriter(fileWriter);
-      writer.writeObject(tagDeploymentInfo.toJson());
-      writer.close();
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
-      if (fileWriter != null) {
-        fileWriter.close();
-      }
+      Document xmlDocument = tagDeploymentInfo.toXml();
+      PluginUtil.toFile(xmlDocument, new File(path));
+    } catch (Exception e) {
+      throw new IOException("Error saving the XML file!!" + ExceptionUtils.getStackTrace(e));
     }
+
   }
 
 

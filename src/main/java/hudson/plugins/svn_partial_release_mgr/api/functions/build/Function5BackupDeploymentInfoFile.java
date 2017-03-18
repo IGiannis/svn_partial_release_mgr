@@ -10,7 +10,7 @@ import hudson.plugins.svn_partial_release_mgr.api.model.ReleaseDeployInput;
  * @author G.ILIADIS
  *         Have a nice programming day!!!!
  */
-public interface Function5BackupDeploymentInfoJson {
+public interface Function5BackupDeploymentInfoFile {
 
   /**
    * Stores the deployed revisions and other info of the releaseDeployInput into a json file

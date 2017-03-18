@@ -1,13 +1,16 @@
 package hudson.plugins.svn_partial_release_mgr.api.model;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import hudson.plugins.svn_partial_release_mgr.api.constants.Constants;
+import hudson.plugins.svn_partial_release_mgr.api.constants.PluginUtil;
 
 /**
  * @author G.ILIADIS
@@ -49,45 +52,40 @@ public class TagDeploymentInfo {
   }
 
   /**
-   * Reads the stored json file into a new pojo instance
+   * Reads the stored xml file into a new pojo instance
    *
-   * @param jsonFile the stored json string to get the info from
+   * @param xmlFile the stored xml string to get the info from
    * @return the new instance of this pojo
    */
-  public static TagDeploymentInfo readFromFile(File jsonFile) throws IOException {
-    FileInputStream fileInputStream = null;
+  public static TagDeploymentInfo readFromFile(File xmlFile) throws IOException {
     try {
-      fileInputStream = new FileInputStream(jsonFile);
-
-      //create JsonReader object
-      JsonReader jsonReader = Json.createReader(fileInputStream);
-      //get JsonObject from JsonReader
-      JsonObject jsonObject = jsonReader.readObject();
-      String tagName = jsonObject.getString("tagName");
-      String deploymentDate = jsonObject.getString("deploymentDate");
-
-      JsonObject userInputJsonObject = jsonObject.getJsonObject("userInput");
-      UserInput userInput = UserInput.fromJson(userInputJsonObject);
+      Document xmlDocument = PluginUtil.buildW3CDocumentFromFile(xmlFile,
+          Constants.ENCODING_UTF8);
+      Node rootNode = xmlDocument.getFirstChild();
+      String tagName = PluginUtil.getValueFromChildElement(rootNode, "tagName");
+      String deploymentDate = PluginUtil.getValueFromChildElement(rootNode, "deploymentDate");
+      UserInput userInput = UserInput.fromXML(rootNode);
       return new TagDeploymentInfo(tagName, deploymentDate, userInput);
-    } finally {
-      if (fileInputStream != null) {
-        fileInputStream.close();
-      }
-    }
 
+    } catch (Exception e) {
+      throw new IOException("Error reading the xml file [" + xmlFile.getAbsolutePath() + "]!!" +
+          ExceptionUtils.getStackTrace(e));
+    }
   }
 
   /**
-   * Converts this pojo to a json string in order to be stored into the disk
+   * Converts this pojo to an XML string in order to be stored into the disk
    *
-   * @return the JsonObject to be stored into a file
+   * @return the XMl document to be stored into a file
    */
-  public JsonObject toJson() {
-    JsonObject userInputJsonObject = userInput.toJson();
-    return Json.createObjectBuilder()
-        .add("tagName", tagName)
-        .add("deploymentDate", deploymentDate)
-        .add("userInput", userInputJsonObject)
-        .build();
+  public Document toXml() {
+    Document document = PluginUtil.buildNewW3CDocument();
+    Element rootNode = document.createElement("deployment");
+    document.appendChild(rootNode);
+    PluginUtil.addNodeInNode(rootNode, "tagName", tagName);
+    PluginUtil.addNodeInNode(rootNode, "deploymentDate", deploymentDate);
+    Node userInputXML = userInput.toXML(document);
+    rootNode.appendChild(userInputXML);
+    return document;
   }
 }

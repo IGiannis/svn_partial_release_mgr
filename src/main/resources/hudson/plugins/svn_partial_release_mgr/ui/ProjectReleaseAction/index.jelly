@@ -119,40 +119,7 @@
                             </table>
                         </td>
                     </tr>
-                    <tr>
-                        <td colspan="100%" style="padding-top:5px;padding-left:12px">
-                            <input type="checkbox" checked="checked" name="generatePartialPatch" value="1"/> Generate Partial Patch
-                        </td>
-                    </tr>
-                    <j:if test="${revisionsInfo.hasPreviousDeployments()}">
-                    <tr>
-                        <td colspan="100%" style="padding-top:5px;padding-left:12px">
-                            <input type="checkbox" name="includePreviousPatchSources" value="1"/> Include Previous deployments source
-                        </td>
-                    </tr>
-                    </j:if>
-                    <tr>
-                        <td colspan="100%" style="padding-left:12px">
-                            <input type="checkbox" name="generateSourcePartialPatch" value="1"/> Generate Sources Patch
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="100%" style="padding-left:12px">
-                            <input type="checkbox" name="generatePatchForEveryIssue" value="1"/> Separate Patch for every issue
-                        </td>
-                    </tr>
-                    <j:if test="${it.hasTagSource()}">
-                    <tr>
-                        <td colspan="100%" style="padding-left:12px">
-                            <input type="checkbox" name="isFastBuild" value="1"/> Fast Build ( Does not clean the build directory, just overrides the files)
-                        </td>
-                    </tr>
-                    </j:if>
-                    <tr>
-                        <td colspan="100%" style="padding-left:12px">
-                            <input type="checkbox" name="isTestBuild" value="1"/> Test Build ( Executes the maven build but is not listed as valid deployment)
-                        </td>
-                    </tr>
+
                     <tr>
                         <td colspan="100%" style="padding-top:10px;padding-bottom:35px;padding-left:15px">
                             <input type="button"

@@ -114,21 +114,12 @@ public class Function0GetReleaseDeployInputImpl implements Function0GetReleaseDe
     if (includeRevisionsIntoTheRelease == null || includeRevisionsIntoTheRelease.isEmpty()) {
       throw new IOException("No revisions have been checked for deployment!!!");
     }
-    boolean generatePartialPatch = NumberUtils.toInt(build.getEnvironment(listener)
-        .get(Constants.ENV_PARAM_GENERATE_PARTIAL_PATCH)) == 1;
-    boolean generateSourcePartialPatch = NumberUtils.toInt(build.getEnvironment(listener)
-        .get(Constants.ENV_PARAM_GENERATE_SRC_PARTIAL_PATCH)) == 1;
-    boolean generatePatchForEveryIssue = NumberUtils.toInt(build.getEnvironment(listener)
-        .get(Constants.ENV_PARAM_GENERATE_PATCH_FOR_EVERY_ISSUE)) == 1;
-    boolean isFastBuild = NumberUtils.toInt(build.getEnvironment(listener)
-        .get(Constants.ENV_PARAM_IS_FAST_BUILD)) == 1;
-    boolean isTestBuild = NumberUtils.toInt(build.getEnvironment(listener)
-        .get(Constants.ENV_PARAM_IS_TEST_BUILD)) == 1;
-    boolean includePreviousPatchSources = NumberUtils.toInt(build.getEnvironment(listener)
-        .get(Constants.ENV_PARAM_INCLUDE_PREV_PATCH_SOURCES)) == 1;
-    return new UserInput(includeRevisionsIntoTheRelease, generatePartialPatch,
-        generateSourcePartialPatch, generatePatchForEveryIssue,
-        isFastBuild, isTestBuild, includePreviousPatchSources);
+    Map<String, String> additionalParameters = new LinkedHashMap<>();
+    for (String environmentVariable : Constants.additionalUserInputParameters.keySet()) {
+      String environmentVariableValue = build.getEnvironment(listener).get(environmentVariable);
+      additionalParameters.put(environmentVariable, environmentVariableValue);
+    }
+    return new UserInput(includeRevisionsIntoTheRelease, additionalParameters);
   }
 
   /**

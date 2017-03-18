@@ -27,7 +27,7 @@ import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function1GetTa
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function2GetPrevDeploymentsFileSources;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function3GetReleaseFileSources;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function4BackupReleaseFilesAsSrcPatches;
-import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function5BackupDeploymentInfoJson;
+import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function5BackupDeploymentInfoFile;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function1TagRevisionResolver;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function2RevisionsAfterTagCollector;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function3PrevDeploymentsCollector;
@@ -153,7 +153,7 @@ public class ReleaseDeploymentService implements PluginService {
       // first clean the build directory
       File buildRootDir = new File(ws, location.local);
 
-      if (!releaseDeployInput.getUserInput().isFastBuild()) {
+      if (!PluginUtil.isFastBuild(releaseDeployInput.getUserInput())) {
         cleanBuildDirectory(buildRootDir, listener);
 
         // check out the tag as a starting point
@@ -178,7 +178,7 @@ public class ReleaseDeploymentService implements PluginService {
           .copyToBuildNumberDirectoryTheFileSources(ws, build, releaseDeployInput, listener);
 
       // store the deployment info file
-      PluginFactory.getBean(Function5BackupDeploymentInfoJson.class)
+      PluginFactory.getBean(Function5BackupDeploymentInfoFile.class)
           .storeTheDeploymentInfoToBuildNumberDirectory(build, listener, releaseDeployInput);
 
       PluginUtil.log(listener, "END - WILL START REGULAR MAVEN BUILD NOW.....");

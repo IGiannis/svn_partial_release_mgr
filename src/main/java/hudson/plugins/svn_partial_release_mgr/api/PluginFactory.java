@@ -13,19 +13,19 @@ import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function1GetTa
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function2GetPrevDeploymentsFileSources;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function3GetReleaseFileSources;
 import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function4BackupReleaseFilesAsSrcPatches;
-import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function5BackupDeploymentInfoJson;
+import hudson.plugins.svn_partial_release_mgr.api.functions.build.Function5BackupDeploymentInfoFile;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function1TagRevisionResolver;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function2RevisionsAfterTagCollector;
 import hudson.plugins.svn_partial_release_mgr.api.functions.initview.Function3PrevDeploymentsCollector;
 import hudson.plugins.svn_partial_release_mgr.impl.ReleaseDeploymentService;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild.Function1UpdateTagDeploymentsJsonFilesImpl;
-import hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild.Function2PartialPatchCreatorImpl;
+import hudson.plugins.svn_partial_release_mgr.impl.functions.afterbuild.Function2PartialPatchCreatorEmpty;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function0GetReleaseDeployInputImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function1GetTagSourceImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function2GetPrevDeploymentsFileSourcesImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function3GetReleaseFileSourcesImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function4BackupReleaseFilesAsSrcPatchesImpl;
-import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function5BackupDeploymentInfoJsonImpl;
+import hudson.plugins.svn_partial_release_mgr.impl.functions.build.Function5BackupDeploymentInfoFileImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.initview.Function1TagRevisionResolverImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.initview.Function2RevisionsAfterTagCollectorImpl;
 import hudson.plugins.svn_partial_release_mgr.impl.functions.initview.Function3PrevDeploymentsCollectorImpl;
@@ -49,11 +49,11 @@ public class PluginFactory {
       put(Function3GetReleaseFileSources.class, Function3GetReleaseFileSourcesImpl.class);
       put(Function4BackupReleaseFilesAsSrcPatches.class,
           Function4BackupReleaseFilesAsSrcPatchesImpl.class);
-      put(Function5BackupDeploymentInfoJson.class, Function5BackupDeploymentInfoJsonImpl.class);
+      put(Function5BackupDeploymentInfoFile.class, Function5BackupDeploymentInfoFileImpl.class);
 
       put(Function1UpdateTagDeploymentsJsonFiles.class,
           Function1UpdateTagDeploymentsJsonFilesImpl.class);
-      put(Function2PartialPatchCreator.class, Function2PartialPatchCreatorImpl.class);
+      put(Function2PartialPatchCreator.class, Function2PartialPatchCreatorEmpty.class);
     }
   };
 

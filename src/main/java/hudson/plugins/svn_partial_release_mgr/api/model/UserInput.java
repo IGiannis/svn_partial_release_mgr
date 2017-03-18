@@ -1,12 +1,16 @@
 package hudson.plugins.svn_partial_release_mgr.api.model;
 
+import org.apache.commons.lang.math.NumberUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
+import hudson.plugins.svn_partial_release_mgr.api.constants.PluginUtil;
 
 /**
  * @author G.ILIADIS
@@ -15,86 +19,52 @@ import javax.json.JsonObject;
 public class UserInput {
 
   private final Set<Long> includedRevisionsInRelease;
-  private final boolean generatePartialPatch;
-  private final boolean includePreviousPatchSources;
-  private final boolean generateSourcePartialPatch;
-  private final boolean generatePatchForEveryIssue;
-  private final boolean isFastBuild;
-  private final boolean isTestBuild;
+  private final Map<String, String> additionalParameters;
 
   public UserInput(Set<Long> includedRevisionsInRelease,
-                   boolean generatePartialPatch,
-                   boolean generateSourcePartialPatch,
-                   boolean generatePatchForEveryIssue,
-                   boolean isFastBuild,
-                   boolean isTestBuild,
-                   boolean includePreviousPatchSources) {
+                   Map<String, String> additionalParameters) {
     this.includedRevisionsInRelease = includedRevisionsInRelease;
-    this.generatePartialPatch = generatePartialPatch;
-    this.generateSourcePartialPatch = generateSourcePartialPatch;
-    this.generatePatchForEveryIssue = generatePatchForEveryIssue;
-    this.isFastBuild = isFastBuild;
-    this.isTestBuild = isTestBuild;
-    this.includePreviousPatchSources = includePreviousPatchSources;
+    this.additionalParameters = additionalParameters;
   }
 
   public Set<Long> getIncludedRevisionsInRelease() {
     return includedRevisionsInRelease;
   }
 
-  public boolean isGeneratePartialPatch() {
-    return generatePartialPatch;
+  public Map<String, String> getAdditionalParameters() {
+    return additionalParameters;
   }
 
-  public boolean isGenerateSourcePartialPatch() {
-    return generateSourcePartialPatch;
+  public String getAdditionalParameterValue(String parameterName) {
+    return additionalParameters != null ? additionalParameters.get(parameterName) : null;
   }
 
-  public boolean isGeneratePatchForEveryIssue() {
-    return generatePatchForEveryIssue;
-  }
-
-  public boolean isFastBuild() {
-    return isFastBuild;
-  }
-
-  public boolean isTestBuild() {
-    return isTestBuild;
-  }
-
-  public boolean isIncludePreviousPatchSources() {
-    return includePreviousPatchSources;
-  }
-
-  public JsonObject toJson() {
-    JsonArrayBuilder deploymentRevisionIds = Json.createArrayBuilder();
+  public Node toXML(Document document) {
+    Element userInputNode = document.createElement("userInput");
+    for (Map.Entry<String, String> entry : additionalParameters.entrySet()) {
+      String parameterName = entry.getKey();
+      String parameterValue = entry.getValue();
+      PluginUtil.addNodeInNode(userInputNode, parameterName, parameterValue);
+    }
+    Element deploymentRevisionsElement = document.createElement("deploymentRevisionIds");
+    userInputNode.appendChild(deploymentRevisionsElement);
     for (Long revisionId : includedRevisionsInRelease) {
-      deploymentRevisionIds.add(revisionId);
+      PluginUtil.addNodeInNode(deploymentRevisionsElement, "revision", String.valueOf(revisionId));
     }
-    return Json.createObjectBuilder()
-        .add("generatePartialPatch", generatePartialPatch)
-        .add("generateSourcePartialPatch", generateSourcePartialPatch)
-        .add("generatePatchForEveryIssue", generatePatchForEveryIssue)
-        .add("isFastBuild", isFastBuild)
-        .add("isTestBuild", isTestBuild)
-        .add("includePreviousPatchSources", includePreviousPatchSources)
-        .add("deploymentRevisionIds", deploymentRevisionIds).build();
+    return userInputNode;
   }
 
-  public static UserInput fromJson(JsonObject jsonObject) {
-    boolean generatePartialPatch = jsonObject.getBoolean("generatePartialPatch");
-    boolean generateSourcePartialPatch = jsonObject.getBoolean("generateSourcePartialPatch");
-    boolean generatePatchForEveryIssue = jsonObject.getBoolean("generatePatchForEveryIssue");
-    boolean isFastBuild = jsonObject.getBoolean("isFastBuild");
-    boolean isTestBuild = jsonObject.getBoolean("isTestBuild");
-    boolean includePreviousPatchSources = jsonObject.getBoolean("includePreviousPatchSources");
-    JsonArray jsonArray = jsonObject.getJsonArray("deploymentRevisionIds");
+  public static UserInput fromXML(Node rootXmlNode) {
+    Node userInputNode = PluginUtil.findNextNode(rootXmlNode, "userInput");
+    Map<String, String> additionalParameters = PluginUtil.getChildNodeValues(userInputNode);
+    Node deploymentRevisionsElement = PluginUtil.findNextNode(rootXmlNode, "deploymentRevisionIds");
+    List<Node> revisionNodesList =
+        PluginUtil.getNodesInNode(deploymentRevisionsElement, "revision");
     Set<Long> deploymentRevisionIds = new HashSet<>();
-    for (int i = 0; i < jsonArray.size(); i++) {
-      deploymentRevisionIds.add(jsonArray.getJsonNumber(i).longValue());
+    for (Node revisionNode : revisionNodesList) {
+      String revisionIDValue = PluginUtil.getValueFromTextNode(revisionNode);
+      deploymentRevisionIds.add(NumberUtils.toLong(revisionIDValue));
     }
-    return new UserInput(deploymentRevisionIds, generatePartialPatch
-        , generateSourcePartialPatch, generatePatchForEveryIssue,
-        isFastBuild, isTestBuild,includePreviousPatchSources);
+    return new UserInput(deploymentRevisionIds, additionalParameters);
   }
 }

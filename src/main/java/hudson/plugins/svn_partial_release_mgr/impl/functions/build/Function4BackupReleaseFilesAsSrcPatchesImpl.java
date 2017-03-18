@@ -35,7 +35,7 @@ public class Function4BackupReleaseFilesAsSrcPatchesImpl implements
                                                        ReleaseDeployInput releaseDeployInput,
                                                        TaskListener listener) throws IOException {
     UserInput userInput = releaseDeployInput.getUserInput();
-    if (!userInput.isGeneratePartialPatch()) {
+    if (!PluginUtil.isGeneratePartialPatch(userInput)) {
       return;
     }
     PluginUtil.log(listener, "CREATING THE SOURCE PATCHES ............");
@@ -46,13 +46,12 @@ public class Function4BackupReleaseFilesAsSrcPatchesImpl implements
     }
     // full patch sources
     File buildDeploymentDir = new File(build.getRootDir(), Constants.DIR_NAME_DEPLOYMENTS);
-    boolean includePreviousDeploymentsFiles = releaseDeployInput.getUserInput()
-        .isIncludePreviousPatchSources();
-    Map<String, Long> previousDeploymentFiles = includePreviousDeploymentsFiles?
-        releaseDeployInput.getFilesToReDeploy():null;
-    copyFullPatchSrc(ws, buildDeploymentDir, releaseFiles,previousDeploymentFiles);
+    boolean includePreviousDeploymentsFiles = PluginUtil.isIncludePreviousPatchSources(userInput);
+    Map<String, Long> previousDeploymentFiles = includePreviousDeploymentsFiles ?
+        releaseDeployInput.getFilesToReDeploy() : null;
+    copyFullPatchSrc(ws, buildDeploymentDir, releaseFiles, previousDeploymentFiles);
     // per issue sources
-    if (userInput.isGeneratePatchForEveryIssue()) {
+    if (PluginUtil.isGeneratePatchForEveryIssue(userInput)) {
       copyPerIssuePatchSrc(ws, buildDeploymentDir, releaseDeployInput);
     }
   }

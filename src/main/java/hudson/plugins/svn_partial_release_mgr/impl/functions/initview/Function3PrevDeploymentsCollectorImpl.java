@@ -54,7 +54,7 @@ public class Function3PrevDeploymentsCollectorImpl implements
       return null;
     }
     List<File> allJsonFiles = PluginUtil.getAllFilesInAllSubDirectories(deploymentsDir,
-        new Constants.JsonFileFilter());
+        new Constants.XmlFileFilter());
     if (allJsonFiles == null || allJsonFiles.isEmpty()) {
       return null;
     }
