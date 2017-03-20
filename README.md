@@ -3,6 +3,7 @@ This plugin provides the option to create a build for a partial release
 
 # Description
 The following scenario is very common and this plugin tries to provide a solution for it. 
+
 Case
 -	The development team releases into the production a major version commits all the code and creates a tag to SVN to represent the release 
 -	The next release is agreed to have a number of issues and the developers start committing the issue implementation code.
