@@ -1,5 +1,4 @@
 # Jenkins plugin - SVN Partial Release Manager
-# Plugin Information
 This plugin provides the option to create a build for a partial release
 
 # Description
