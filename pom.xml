@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.hudsonci.plugins</groupId>
-    <artifactId>svn_partial_release_mgr</artifactId>
+    <artifactId>svn-partial-release-mgr</artifactId>
     <packaging>hpi</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>Subversion Partial Release Manager plugin</name>
